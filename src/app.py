@@ -2,11 +2,14 @@ import streamlit as st
 import joblib
 import numpy as np
 import pandas as pd
+import os
 
-# 1. Advanced Page Config
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+MODEL_PATH = os.path.join(BASE_DIR, "..", "models", "laptop_pipeline.joblib")
+
 st.set_page_config(page_title="Laptop AI Predictor", layout="wide")
 
-# 2. Inject Custom CSS for "Advanced" Look
 st.markdown("""
     <style>
     .main { background-color: #0e1117; }
@@ -14,15 +17,25 @@ st.markdown("""
     .stButton>button { 
         width: 100%; border-radius: 20px; 
         background-color: #00d4ff; color: black; font-weight: bold;
+        border: none;
+    }
+    .stButton>button:hover {
+        background-color: #008fb3;
+        color: white;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. Load Model and Scaler
-model = joblib.load('models/model.joblib')
-scaler = joblib.load('models/scaler.joblib')
+@st.cache_resource 
+def load_pipeline():
+    return joblib.load(MODEL_PATH)
 
-# 4. UI Layout
+try:
+    pipeline = load_pipeline()
+except FileNotFoundError:
+    st.error(f"Model file not found at {MODEL_PATH}. Did you run train.py and push the 'models' folder to GitHub?")
+    st.stop()
+
 st.title("💻 Laptop Price AI Predictor")
 st.markdown("---")
 
@@ -40,19 +53,21 @@ with col1:
 with col2:
     st.subheader("Market Analysis")
     if predict_btn:
-        # Process Input
-        input_data = np.array([[ram, ssd, weight, screen]])
-        scaled_input = scaler.transform(input_data)
-        prediction = model.predict(scaled_input)[0]
+        input_df = pd.DataFrame(
+            [[ram, ssd, weight, screen]], 
+            columns=['ram', 'ssd', 'weight', 'screen']
+        )
+        
+        prediction = pipeline.predict(input_df)[0]
         
         # Display Metric
         st.metric(label="Predicted Price (USD)", value=f"${prediction:,.2f}")
         
-        # Fun Visualization
+        st.write("### Value Comparison Chart")
         chart_data = pd.DataFrame(
-            np.random.randn(10, 1) * 100 + prediction,
-            columns=['Market Fluctuations']
+            np.random.randn(10, 1) * 50 + prediction,
+            columns=['Market Price Range']
         )
-        st.line_chart(chart_data)
+        st.area_chart(chart_data)
     else:
-        st.info("Adjust the sliders on the left to see the AI prediction.")
+        st.info("Adjust the sliders on the left and click 'Calculate' to see the AI prediction.")
