@@ -36,7 +36,7 @@ except FileNotFoundError:
     st.error(f"Model file not found at {MODEL_PATH}. Did you run train.py and push the 'models' folder to GitHub?")
     st.stop()
 
-st.title("💻 Laptop Price AI Predictor")
+st.title("Laptop Price AI Predictor")
 st.markdown("---")
 
 col1, col2 = st.columns([1, 2])
@@ -71,3 +71,4 @@ with col2:
         st.area_chart(chart_data)
     else:
         st.info("Adjust the sliders on the left and click 'Calculate' to see the AI prediction.")
+
