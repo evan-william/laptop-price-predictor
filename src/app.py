@@ -59,6 +59,9 @@ with col2:
         )
         
         prediction = pipeline.predict(input_df)[0]
+
+        if prediction < 150:
+            prediction = 150.0
         
         # Display Metric
         st.metric(label="Predicted Price (USD)", value=f"${prediction:,.2f}")
@@ -71,4 +74,3 @@ with col2:
         st.area_chart(chart_data)
     else:
         st.info("Adjust the sliders on the left and click 'Calculate' to see the AI prediction.")
-
